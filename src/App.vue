@@ -24,8 +24,20 @@
       </div>
 
       <div class="answer">
-        <button :class="[positionAnswer]">POSITION MATCH</button>
-        <button :class="[audioAnswer]">AUDIO MATCH</button>
+        <button :class="[positionAnswer]">
+          POSITION MATCH 
+          <div>
+            <img src="./assets/like.png" alt=""> <span>{{positionMatchCount}}</span>
+            <img src="./assets/dislike.png" class="dislike"> <span>{{positionFailCount}}</span>
+          </div>
+        </button>
+        <button :class="[audioAnswer]">
+          AUDIO MATCH
+          <div>
+            <img src="./assets/like.png" alt=""> <span>{{audioMatchCount}}</span>
+            <img src="./assets/dislike.png" class="dislike"> <span>{{audioFailCount}}</span>
+          </div>
+        </button>
       </div>
     </div>
   </div>
@@ -38,10 +50,6 @@ export default {
   data(){ return {
     /** render */
     cells: ["one", "two", "three", "four", "center", "five", "six", "seven", "eight"],
-    position: null,
-    letter: null,
-    positionAnswer: '', // yes || no
-    audioAnswer: '', // yes || no
 
 
 
@@ -52,7 +60,7 @@ export default {
     keyPosition: 'KeyA',
     keyAudio: 'KeyL',
     playback: 1, // default
-    letters: ['s', 't', 'l', 'q', 'o', 'e'],
+    letters: ['s', 't', 'l', 'q'],
     time: 2000, // miliseconds
 
 
@@ -66,10 +74,13 @@ export default {
     keyPositionPressed: false,
     keyListenerPressed: false,
 
-    gamePositionResult: [],
-    gameListenerResult: [],
     userPositionResult: [],
     userListenerResult: [],
+
+    position: null,
+    letter: null,
+    positionAnswer: '', // yes || no
+    audioAnswer: '', // yes || no
 
     
     /** support */
@@ -81,7 +92,7 @@ export default {
     round(){
       return 20 + this.playback
     },
-
+      
     backValue(){
       if (this.gameHistory.length >= this.playback) {
         let indexOf = this.gameHistory.length - 1 - this.playback
@@ -90,6 +101,26 @@ export default {
       else {
         return false
       }
+    },
+
+    positionMatched(){
+      return this.backValue && this.position == this.backValue.position
+    },
+    audioMatched(){
+      return this.backValue && this.letter == this.backValue.letter
+    },
+
+    positionMatchCount(){
+      return this.userPositionResult.filter( result => result == true).length
+    },
+    positionFailCount(){
+      return this.userPositionResult.filter( result => result == false).length
+    },
+    audioMatchCount(){
+      return this.userListenerResult.filter( result => result == true).length
+    },
+    audioFailCount(){
+      return this.userListenerResult.filter( result => result == false).length
     }
   },
 
@@ -111,19 +142,35 @@ export default {
     },
 
     resetForNewGame(){
-      this.isPlaying = false
-      this.position = null
-      this.keyPositionPressing = false
-      this.keyPositionListener = false
-      this.gameHistory.length = 0
+      this.clearCurrentRound()
+      this.clearCurrentGame()
       clearInterval(this.timeID)
     },
 
     resetForNextTime(){
-      this.keyPositionPressing = false
-      this.keyListenerPressing = false
+      if (this.positionMatched) { this.userPositionResult.push(this.keyPositionPressed) }
+      else if (this.keyPositionPressed) { this.userPositionResult.push(this.positionMatched) }
+
+      if (this.audioMatched) { this.userListenerResult.push(this.keyListenerPressed) }
+      else if (this.keyListenerPressed) { this.userListenerResult.push(this.audioMatched) }
+      
+      this.clearCurrentRound()
+    },
+
+    clearCurrentRound(){
+      this.keyPositionPressed = false
+      this.keyListenerPressed = false
       this.positionAnswer = ''
       this.audioAnswer = ''
+      this.position = null
+      this.letter = null
+    },
+
+    clearCurrentGame(){
+      this.isPlaying = false
+      this.userPositionResult = []
+      this.userListenerResult = []
+      this.gameHistory = []
     },
 
     showAndPlaySound(){
@@ -156,12 +203,12 @@ export default {
       // chỉ cho phép chơi khi backValue hợp lệ 
       if (this.isPlaying && this.backValue) {
         if (e.code == this.keyPosition && !this.keyPositionPressed) {
-          this.keyPositionPressing = true
+          this.keyPositionPressed = true
           this.positionAnswer = this.position == this.backValue.position ? "correct" : "fail"
         }
 
         if (e.code == this.keyAudio && !this.keyListenerPressed) {
-          this.keyListenerPressing = true
+          this.keyListenerPressed = true
           this.audioAnswer = this.letter == this.backValue.letter ? "correct" : "fail"
         }
       }
@@ -306,7 +353,7 @@ export default {
     margin-top: 50px
   }
   .answer button {
-    height: 50px;
+    min-height: 50px;
     border-color: transparent;
     background-color: #f2f2f2;
     border-radius: 10px;
@@ -316,6 +363,19 @@ export default {
 
   .answer button:focus {
     outline: none
+  }
+
+  button img {
+    width: 30px;
+    height: 30px;
+  }
+
+  img.dislike {
+    transform: scaleY(-1)
+  }
+
+  button * {
+    vertical-align: middle
   }
 
   .answer .correct {
