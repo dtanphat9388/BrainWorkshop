@@ -1,5 +1,18 @@
 <template>
   <div id="app">
+    <div id="menu">Brain Workshop</div>
+    <div id="huongdan">
+      <p><strong>Space bar</strong>: play</p>
+      <p><strong>Escape</strong>: end game</p>
+      <p><strong>A</strong>: position match</p>
+      <p><strong>L</strong>: audio match</p>
+    </div>
+
+    <div id="setup">
+      <p>n-back {{ playback }}<input type="range" min="1" max="6" step="1" v-model="playback" :disabled="isPlaying"></p>
+      <p>speed {{ time }}<input type="range" min="500" max="3000" step="100" v-model="time" :disabled="isPlaying"></p>
+    </div>
+
     <div id="content">
       <div id="game">
         <div 
@@ -13,11 +26,6 @@
       <div class="answer">
         <button :class="[positionAnswer]">POSITION MATCH</button>
         <button :class="[audioAnswer]">AUDIO MATCH</button>
-        <div>
-          <button style="width: 100%">
-            <input type="text" value="5">
-          </button>
-        </div>
       </div>
     </div>
   </div>
@@ -43,8 +51,6 @@ export default {
     keyStart: 'Space',
     keyPosition: 'KeyA',
     keyAudio: 'KeyL',
-
-    round: 30,
     playback: 1, // default
     letters: ['s', 't', 'l', 'q', 'o', 'e'],
     time: 2000, // miliseconds
@@ -72,6 +78,10 @@ export default {
   }},
 
   computed: {
+    round(){
+      return 20 + this.playback
+    },
+
     backValue(){
       if (this.gameHistory.length >= this.playback) {
         let indexOf = this.gameHistory.length - 1 - this.playback
@@ -206,6 +216,18 @@ export default {
     margin: 0px;
     padding: 0px;
     font-size: 1.025em
+  }
+
+  #menu {
+    background-color:dodgerblue;
+    color: white;
+    height: 56px;
+    line-height: 56px;
+    font-weight: bolder;
+    font-size: 30px;
+    padding: 10px;
+    box-shadow: 0px 1px 3px 1px grey;
+    margin-bottom: 20px; 
   }
  
   #app #content {
